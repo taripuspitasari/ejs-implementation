@@ -5,6 +5,8 @@ const {
   findContact,
   addContact,
   cekDuplikat,
+  deleteContact,
+  updateContacts,
 } = require("./utils/contacts");
 const {body, validationResult, check} = require("express-validator");
 const session = require("express-session");
@@ -58,6 +60,7 @@ app.get("/contact", (req, res) => {
   });
 });
 
+// halaman form tambah data contact
 app.get("/contact/add", (req, res) => {
   res.render("add-contact", {
     layout: "layouts/main-layout",
@@ -97,6 +100,66 @@ app.post(
   }
 );
 
+// proses delete contact
+app.get("/contact/delete/:nama", (req, res) => {
+  const contact = findContact(req.params.nama);
+  // jika contact idak ada
+  if (!contact) {
+    res.status(404);
+    res.send("<h1>404</h1>");
+  } else {
+    deleteContact(req.params.nama);
+    // kirimkan flash message
+    req.flash("msg", "Data contact berhasil dihapus!");
+    res.redirect("/contact");
+  }
+});
+
+// halaman form ubah data contact
+app.get("/contact/edit/:nama", (req, res) => {
+  const contact = findContact(req.params.nama);
+
+  res.render("edit-contact", {
+    layout: "layouts/main-layout",
+    title: "Form Ubah Data Contact",
+    contact,
+  });
+});
+
+// halaman ubah contact
+app.post(
+  "/contact/update",
+  [
+    body("nama").custom((value, {req}) => {
+      const duplikat = cekDuplikat(value);
+      if (value !== req.body.oldNama && duplikat) {
+        throw new Error("Nama contact sudah terdaftar!");
+      }
+      return true;
+    }),
+    check("email", "Email tidak valid!").isEmail(),
+    check("nohp", "No Hp tidak valid!").isMobilePhone("id-ID"),
+  ],
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.render("edit-contact", {
+        title: "Form Ubah Data Contact",
+        layout: "layouts/main-layout",
+        errors: errors.array(),
+        contact: req.body,
+      });
+    } else {
+      res.send(req.body);
+      updateContacts(req.body);
+      // kirimkan flash message
+      req.flash("msg", "Data contact berhasil diubah!");
+      res.redirect("/contact");
+    }
+  }
+);
+
+// halaman detail contact
 app.get("/contact/:nama", (req, res) => {
   const contact = findContact(req.params.nama);
 

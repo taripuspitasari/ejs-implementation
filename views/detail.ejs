@@ -17,7 +17,16 @@
             <%= contact.nohp %>
           </h6>
           <p class="card-text"><%= contact.email %></p>
-          <a href="/contact" class="card-link"
+          <a href="/contact/edit/<%= contact.nama %>" class="btn btn-info badge"
+            >ubah</a
+          >
+          <a
+            href="/contact/delete/<%= contact.nama %>"
+            class="btn btn-danger badge"
+            onclick="return confirm('Yakin ingin mengahapus contact ini?')"
+            >hapus</a
+          >
+          <a href="/contact" class="card-link d-block mt-3"
             >&laquo; Kembali ke daftar contact</a
           >
         </div>
